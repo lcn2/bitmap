@@ -86,9 +86,9 @@
  */
 
 /*
- * @(#) $Revision$
- * @(#) $Id$
- * @(#) $Source$
+ * @(#) $Revision: 1.5 $
+ * @(#) $Id: bitset.c,v 1.5 2001/12/28 06:44:21 chongo Exp chongo $
+ * @(#) $Source: /home/chongo/bench/goldbach/RCS/bitset.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
  *
@@ -319,7 +319,7 @@ main(int argc, char *argv[])
 	     */
 	    do {
 		/* update bitmap buffer range values */
-		bottom = beyond;
+		bottom += span;
 		beyond += span;
 
 		/*
@@ -341,7 +341,7 @@ main(int argc, char *argv[])
 		    }
 		}
 	    /* NOTE: beyond > bottom magic again */
-	    } while(beyond > bottom && value >= beyond);
+	    } while (beyond > bottom && value >= beyond);
 
 	    /*
 	     * We have just written our older bitmap buffer, so we must zero it
@@ -355,11 +355,14 @@ main(int argc, char *argv[])
 	 * bitmap buffer.  We will now determine where the bit to be set
 	 * resides.
 	 */
-	boffset = (value - start) / step;
+	boffset = (value - bottom) / step;
 	/* firewall */
 	if (boffset > (u_int64_t)BUFSIZ*OCTETBITS) {
 	    fprintf(stderr, "%s: FATAL: unexpected bit offset: %lld > %d\n",
 		    program, boffset, BUFSIZ*OCTETBITS);
+	    fprintf(stderr, "%s: FATAL: prev: %lld value: %lld "
+	    		    "bottom: %lld beyond: %lld\n",
+			    program, prev, value, bottom, beyond);
 	    exit(7);
 	}
 	octet = (int)(boffset / OCTETBITS);
