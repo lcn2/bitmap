@@ -1,6 +1,6 @@
 #!/bin/make
 #
-# bitmap - output a bitmap given sorted integers on input
+# bitset - output a bitset given sorted integers on input
 #
 # @(#) $Revision$
 # @(#) $Id$
@@ -32,22 +32,23 @@
 
 SHELL= /bin/sh
 CC= cc
-CFLAGS= -g3 -O2 -Wall
+#CFLAGS= -g3 -O2 -Wall
+CFLAGS= -g3 -Wall
 
 DESTDIR = /usr/local/bin
 INSTALL= install
-TARGETS= bitmap
+TARGETS= bitset
 
 all: ${TARGETS}
 
-bitmap: bitmap.o
-	${CC} ${CFLAGS} bitmap.o -o bitmap
+bitset: bitset.o
+	${CC} ${CFLAGS} bitset.o -o bitset
 
-bitmap.o: bitmap.c
-	${CC} ${CFLAGS} bitmap.c -c
+bitset.o: bitset.c
+	${CC} ${CFLAGS} bitset.c -c
 
 install: all
-	${INSTALL} -m 0755 bitmap ${DESTDIR}/bitmap
+	${INSTALL} -m 0755 bitset ${DESTDIR}/bitset
 
 clean:
 	rm -f *.o
