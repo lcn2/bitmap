@@ -2,8 +2,8 @@
 #
 # bitset - output a bitset given sorted integers on input
 #
-# @(#) $Revision: 1.2 $
-# @(#) $Id: Makefile,v 1.2 2001/12/27 20:20:16 chongo Exp chongo $
+# @(#) $Revision: 1.3 $
+# @(#) $Id: Makefile,v 1.3 2001/12/28 06:42:11 chongo Exp chongo $
 # @(#) $Source: /home/chongo/bench/goldbach/RCS/Makefile,v $
 #
 # Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
@@ -37,7 +37,7 @@ CFLAGS= -g3 -Wall
 
 DESTDIR = /usr/local/bin
 INSTALL= install
-TARGETS= bitset popcnt
+TARGETS= bitset popcnt listbit
 
 all: ${TARGETS}
 
@@ -46,6 +46,9 @@ bitset: bitset.c
 
 popcnt: popcnt.c
 	${CC} ${CFLAGS} popcnt.c -o popcnt
+
+listbit: listbit.c
+	${CC} ${CFLAGS} listbit.c -o listbit
 
 install: all
 	-@for i in ${TARGETS}; do \
