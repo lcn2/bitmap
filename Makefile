@@ -1,9 +1,9 @@
 #!/bin/make
 #
-# bitset - output a bitset given sorted integers on input
+# bitmap - bitmap operations
 #
-# @(#) $Revision: 1.3 $
-# @(#) $Id: Makefile,v 1.3 2001/12/28 06:42:11 chongo Exp chongo $
+# @(#) $Revision: 1.4 $
+# @(#) $Id: Makefile,v 1.4 2001/12/28 18:29:30 chongo Exp chongo $
 # @(#) $Source: /home/chongo/bench/goldbach/RCS/Makefile,v $
 #
 # Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
