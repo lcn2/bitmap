@@ -2,9 +2,9 @@
 #
 # bitset - output a bitset given sorted integers on input
 #
-# @(#) $Revision$
-# @(#) $Id$
-# @(#) $Source$
+# @(#) $Revision: 1.2 $
+# @(#) $Id: Makefile,v 1.2 2001/12/27 20:20:16 chongo Exp chongo $
+# @(#) $Source: /home/chongo/bench/goldbach/RCS/Makefile,v $
 #
 # Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
 #
@@ -37,18 +37,25 @@ CFLAGS= -g3 -Wall
 
 DESTDIR = /usr/local/bin
 INSTALL= install
-TARGETS= bitset
+TARGETS= bitset popcnt
 
 all: ${TARGETS}
 
-bitset: bitset.o
-	${CC} ${CFLAGS} bitset.o -o bitset
+bitset: bitset.c
+	${CC} ${CFLAGS} bitset.c -o bitset
 
-bitset.o: bitset.c
-	${CC} ${CFLAGS} bitset.c -c
+popcnt: popcnt.c
+	${CC} ${CFLAGS} popcnt.c -o popcnt
 
 install: all
-	${INSTALL} -m 0755 bitset ${DESTDIR}/bitset
+	-@for i in ${TARGETS}; do \
+	    if cmp -s $$i ${DESTDIR}/$$i; then \
+	        :; \
+	    else \
+		echo "installing $$i"; \
+		${INSTALL} -m 0755 $$i ${DESTDIR}/$$i; \
+	    fi; \
+	done
 
 clean:
 	rm -f *.o
