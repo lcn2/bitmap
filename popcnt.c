@@ -11,9 +11,9 @@
  */
 
 /*
- * @(#) $Revision$
- * @(#) $Id$
- * @(#) $Source$
+ * @(#) $Revision: 1.1 $
+ * @(#) $Id: popcnt.c,v 1.1 2001/12/28 06:40:34 chongo Exp chongo $
+ * @(#) $Source: /home/chongo/bench/goldbach/RCS/popcnt.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
  *
@@ -123,6 +123,7 @@ main(int argc, char *argv[])
     program = argv[0];
     if (argc != 2) {
 	fprintf(stderr, "usage: %s type\n\n"
+	    "\n"
 	    "\ttype\t0 ==> count 0 bits\n"
 	    "\t\t1 ==> count 1 bits\n"
 	    "\t\t2 ==> count bits\n", program);
@@ -161,7 +162,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-	 * case: count 0 bits
+	 * count bits
 	 */
 	switch (cnttype) {
 	case COUNT_ZERO:

@@ -86,8 +86,8 @@
  */
 
 /*
- * @(#) $Revision: 1.5 $
- * @(#) $Id: bitset.c,v 1.5 2001/12/28 06:44:21 chongo Exp chongo $
+ * @(#) $Revision: 1.6 $
+ * @(#) $Id: bitset.c,v 1.6 2001/12/28 07:13:42 chongo Exp chongo $
  * @(#) $Source: /home/chongo/bench/goldbach/RCS/bitset.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
@@ -169,7 +169,10 @@ main(int argc, char *argv[])
      */
     program = argv[0];
     if (argc != 3) {
-	fprintf(stderr, "usage: %s start step\n", program);
+	fprintf(stderr, "usage: %s start step\n"
+	    "\n"
+	    "\tstart\tstarting bitmap value\n"
+	    "\tstep\tstep values between bits\n", program);
 	exit(1);
     }
     errno = 0;
