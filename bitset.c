@@ -47,6 +47,8 @@
  *	provided that (v - start) % step == 0.  (i.e., the value
  *	is not ignored because it cannot be represented in the bitmap).
  *
+ *	NOTE: 8 is used because there are 8 bits per octet (see OCTETBITS)
+ *
  * One should note that if step is 1, then the bitmap represents the
  * integers beginning with start:
  *
@@ -92,9 +94,10 @@
 
 
 /*
- * maximum useful input line
+ * misc constants
  */
 #define MAXLINE (19+1)	/* 2^63-1 is 19 digits long + newline */
+#define OCTETBITS (8)	/* 8 bits per octet */
 
 /*
  * a BUFSIZ chunk of the output bitmap, with an extra guard octet for safety
@@ -172,7 +175,7 @@ main(int argc, char *argv[])
     memset(buffer, '\0', BUFSIZ+1);
     memset(zero, '\0', BUFSIZ+1);
     bottom = start;
-    span = 8*BUFSIZ*step;
+    span = OCTETBITS*BUFSIZ*step;
     beyond = start + span;
     had_prev = 0;	/* no previous non-ignored value */
     prev = 0;
@@ -180,7 +183,7 @@ main(int argc, char *argv[])
     /*
      * output sieve buffers until EOF
      */
-    errno = 0;
+    clearerr(stdin);
     while (fgets(inbuf, MAXLINE+1, stdin) != NULL) {
 	char *p;	/* char check pointer */
 
@@ -272,7 +275,7 @@ main(int argc, char *argv[])
 	    /*
 	     * write the current bitmap buffer
 	     */
-	    errno = 0;
+	    clearerr(stdout);
 	    if (fwrite(buffer, 1, BUFSIZ, stdout) != BUFSIZ) {
 		fprintf(stderr, "%s: buffer write error: %s\n",
 			program, strerror(errno));
@@ -300,7 +303,7 @@ main(int argc, char *argv[])
 		    /*
 		     * write the 0-filled bitmap buffer
 		     */
-		    errno = 0;
+		    clearerr(stdout);
 		    if (fwrite(zero, 1, BUFSIZ, stdout) != BUFSIZ) {
 			fprintf(stderr, "%s: 0-buffer write error: %s\n",
 				program, strerror(errno));
@@ -324,13 +327,13 @@ main(int argc, char *argv[])
 	 */
 	boffset = (value - start) / step;
 	/* firewall */
-	if (boffset > BUFSIZ) {
+	if (boffset > (u_int64_t)BUFSIZ*OCTETBITS) {
 	    fprintf(stderr, "%s: FATAL: unexpected bit offset: %lld > %d\n",
-		    program, boffset, BUFSIZ*8);
+		    program, boffset, BUFSIZ*OCTETBITS);
 	    exit(7);
 	}
-	octet = (int)(boffset / 8);
-	bit = (int)(boffset % 8);
+	octet = (int)(boffset / OCTETBITS);
+	bit = (int)(boffset % OCTETBITS);
 
 	/*
 	 * Set the bit ... this is where the useful work is done!  :-)
@@ -343,7 +346,7 @@ main(int argc, char *argv[])
     	had_prev = 1;
 	prev = value;
 	/* clear any error flags */
-	errno = 0;
+	clearerr(stdin);
     }
 
     /*
@@ -363,7 +366,7 @@ main(int argc, char *argv[])
      */
 
     /*
-     * determine the highest octet for which there is a 1 bit, it any
+     * determine the highest octet for which there is a 1 bit, if any
      */
     for (octet = BUFSIZ-1; octet >= 0 && buffer[octet] == 0; --octet) {
     }
@@ -372,7 +375,7 @@ main(int argc, char *argv[])
      * write out only the bitmap octets that are needed, if any
      */
     if (octet >= 0) {
-	errno = 0;
+	clearerr(stdout);
 	if (fwrite(buffer, 1, octet+1, stdout) != octet+1) {
 	    fprintf(stderr, "%s: final buffer write error: %s\n",
 		    program, strerror(errno));
