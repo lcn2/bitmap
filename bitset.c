@@ -9,7 +9,7 @@
  *
  * The purpose of this program is to set bits in a bitmap.  The input to
  * this program are integers indicating which bits in the bitmap to set.
- * NOTE: start, step and any input values be able to be represented as 
+ * The output of this program is the resulting bitmap.  The final octet
  * written is the highest octet in the bitmap with a set bit.
  *
  * NOTE: step must be an integer > 0
@@ -63,7 +63,7 @@
  *
  * For each non-ignored input value read on input, its corresponding bit is
  * set to 1.  All other bits are set to 0.  Thus the bitmap that is written
- * filled with zeros.  So it is possible that up to 7 extra 0 bits may be 
+ * has 1's for non-ignored input values and 0's everywhere else.
  *
  * The length of the output will be determined by the highest (last)
  * non-ignored input value, relative to the start value.  The bitmap
@@ -81,8 +81,14 @@
  * be sent to stderr.  However duplicate values, values < start and
  * values that cannot be represented in the bitmap (due to step) will
  * be silently ignored.
+ */
+
+#include <stdio.h>
 #include <ctype.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <memory.h>
+#include <stdlib.h>
 
 
 /*
@@ -90,14 +96,18 @@
  */
 #define MAXLINE (19+1)	/* 2^63-1 is 19 digits long + newline */
 
-u_int8_t buffer[BUFSIZ+1];
+/*
  * a BUFSIZ chunk of the output bitmap, with an extra guard octet for safety
  *
  * This is the current bitmap buffer with a first bit value of 'bottom'.
  */
 static u_int8_t buffer[BUFSIZ+1];
-u_int8_t zero[BUFSIZ+1];
+
 /*
+ * Zero filled bitmap for when there are large gaps as we need to
+ * output 0-filled buffers before setting the next bit.
+ */
+static u_int8_t zero[BUFSIZ+1];
 
 /*
  * our name
@@ -119,25 +129,26 @@ main(int argc, char *argv[])
     int64_t boffset;		/* total bit offset in buffer for value */
     int octet;			/* octet offset in buffer for value */
     int bit;			/* bit offset in byte for value */
+    char inbuf[MAXLINE+1];	/* max input line + newline + NUL byte */
 
-	fprintf(stderr, "usage: %s start step\n", __program);
+    /*
      * parse args
      */
     program = argv[0];
     if (argc != 3) {
 	fprintf(stderr, "usage: %s start step\n", program);
 	exit(1);
-		__program);
+    }
     errno = 0;
     start = strtoll(argv[1], NULL, 0);
     if (errno == ERANGE) {
 	fprintf(stderr, "%s: start value must be [-(2^63),(2^63-1)]\n",
 		program);
-	fprintf(stderr, "%s: start value must be [1,(2^63-1)]\n", __program);
+        exit(2);
     }
     errno = 0;
     step = strtoll(argv[2], NULL, 0);
-	fprintf(stderr, "%s: step: %lld must be > 0\n", __program, step);
+    if (errno == ERANGE) {
 	fprintf(stderr, "%s: start value must be [1,(2^63-1)]\n", program);
         exit(3);
     }
@@ -146,7 +157,7 @@ main(int argc, char *argv[])
 	exit(4);
     }
 
-     * ever happens, then bottom > beyond.  This isn't a big problem becase
+    /*
      * setup and initialize
      *
      * There is some deep magic in the beyond calculation.  It is possible
@@ -158,7 +169,8 @@ main(int argc, char *argv[])
      */
     line = 0;	/* 1st line will be 1 */
     memset(inbuf, '\0', MAXLINE+1);
-    had_prev = 0;	/* no previos non-ignored value */
+    memset(buffer, '\0', BUFSIZ+1);
+    memset(zero, '\0', BUFSIZ+1);
     bottom = start;
     span = 8*BUFSIZ*step;
     beyond = start + span;
@@ -191,10 +203,10 @@ main(int argc, char *argv[])
 	while (*p != '\0' && isdigit(*p) && p < inbuf+MAXLINE) {
 	    ++p;
 	}
-			__program, line);
+	/* we better have stopped on a newline followed by NUL */
 	if (*p != '\n' || *(p+1) != '\0') {
 	    /* improper line, ignore it */
-			__program, line);
+	    if (*p == '\0') {
 		fprintf(stderr, "%s: line %lld: ignoring, line too long\n",
 			program, line);
 	    } else {
@@ -206,7 +218,7 @@ main(int argc, char *argv[])
 
     	/*
 	 * convert input into an input value
-		    __program, line);
+	 */
 	errno = 0;
 	value = strtoll(inbuf, NULL, 0);
 	if (errno == ERANGE) {
@@ -216,7 +228,7 @@ main(int argc, char *argv[])
 	}
 
 	/*
-			__program, line);
+	 * warn if unsorted, silently if equal
 	 */
 	if (had_prev && value <= prev) {
 	    if (value < prev) {
@@ -229,7 +241,7 @@ main(int argc, char *argv[])
 	/*
 	 * silently ignore if below start
 	 */
-	 * silently ignore if not a bitmap representable value
+	if (value < start) {
 	    continue;
 	}
 
@@ -258,7 +270,7 @@ main(int argc, char *argv[])
     	if (beyond > bottom && value >= beyond) {
 
 	    /*
-			__program, strerror(errno));
+	     * write the current bitmap buffer
 	     */
 	    errno = 0;
 	    if (fwrite(buffer, 1, BUFSIZ, stdout) != BUFSIZ) {
@@ -272,8 +284,8 @@ main(int argc, char *argv[])
 	     * 1 or more zero filled buffers.  In any event we must
 	     * at least update the bitmap buffer 'bottom' and 'beyond' values.
 	     */
-		/* 
-		 * determine if 0-filled bitmap buffer needs to be written 
+	    do {
+		/* update bitmap buffer range values */
 		bottom = beyond;
 		beyond += span;
 
@@ -286,7 +298,7 @@ main(int argc, char *argv[])
 		if (beyond > bottom && value >= beyond) {
 
 		    /*
-				__program, strerror(errno));
+		     * write the 0-filled bitmap buffer
 		     */
 		    errno = 0;
 		    if (fwrite(zero, 1, BUFSIZ, stdout) != BUFSIZ) {
@@ -309,7 +321,7 @@ main(int argc, char *argv[])
 	 * At this point we know that we need to set a bit in the current
 	 * bitmap buffer.  We will now determine where the bit to be set
 	 * resides.
-		    __program, boffset, BUFSIZ*8);
+	 */
 	boffset = (value - start) / step;
 	/* firewall */
 	if (boffset > BUFSIZ) {
@@ -333,7 +345,7 @@ main(int argc, char *argv[])
 	/* clear any error flags */
 	errno = 0;
     }
-	fprintf(stderr, "%s: read error: %s\n", __program, strerror(errno));
+
     /*
      * firewall - catch the case of stdin error
      */
@@ -348,7 +360,7 @@ main(int argc, char *argv[])
      * any values, and thus the buffer will be empty.  It is also possible
      * that we will write only a few of the bitmap buffer octets as we
      * will stop writing at the last octet for which there is a 1 bit.
-    for (octet = BUFSIZ-1; octet >= 0 && bitmap[octet] == 0; --octet) {
+     */
 
     /*
      * determine the highest octet for which there is a 1 bit, it any
@@ -359,7 +371,7 @@ main(int argc, char *argv[])
     /*
      * write out only the bitmap octets that are needed, if any
      */
-		    __program, strerror(errno));
+    if (octet >= 0) {
 	errno = 0;
 	if (fwrite(buffer, 1, octet+1, stdout) != octet+1) {
 	    fprintf(stderr, "%s: final buffer write error: %s\n",
