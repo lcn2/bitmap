@@ -2,9 +2,9 @@
 #
 # bitmap - bitmap operations
 #
-# @(#) $Revision: 1.4 $
-# @(#) $Id: Makefile,v 1.4 2001/12/28 18:29:30 chongo Exp chongo $
-# @(#) $Source: /home/chongo/bench/goldbach/RCS/Makefile,v $
+# @(#) $Revision: 1.5 $
+# @(#) $Id: Makefile,v 1.5 2001/12/28 18:30:12 chongo Exp root $
+# @(#) $Source: /usr/local/src/cmd/bitmap/RCS/Makefile,v $
 #
 # Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
 #
@@ -33,7 +33,8 @@
 SHELL= /bin/sh
 CC= cc
 #CFLAGS= -g3 -O2 -Wall
-CFLAGS= -g3 -Wall
+#CFLAGS= -g3 -Wall
+CFLAGS= -O3 -Wall
 
 DESTDIR = /usr/local/bin
 INSTALL= install
