@@ -14,8 +14,8 @@
 
 /*
  * @(#) $Revision: 1.1 $
- * @(#) $Id: popcnt.c,v 1.1 2001/12/28 06:40:34 chongo Exp $
- * @(#) $Source: /home/chongo/bench/goldbach/RCS/popcnt.c,v $
+ * @(#) $Id: listbit.c,v 1.1 2001/12/28 18:28:44 chongo Exp root $
+ * @(#) $Source: /usr/local/src/bin/bitmap/RCS/listbit.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
  *
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
         exit(3);
     }
     if (step <= 0) {
-	fprintf(stderr, "%s: step: %lld must be > 0\n", program, step);
+	fprintf(stderr, "%s: step: %ld must be > 0\n", program, step);
 	exit(4);
     }
     if (strcmp(argv[1], "0") == 0) {
@@ -149,7 +149,7 @@ main(int argc, char *argv[])
 		if (buffer[i]) {
 		    for (j=0; j < OCTETBITS; ++j) {
 			if ((buffer[i] & (1<<j)) == 0) {
-			    printf("%lld\n", value);
+			    printf("%ld\n", value);
 			}
 			value += step;
 		    }
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 		if (buffer[i]) {
 		    for (j=0; j < OCTETBITS; ++j) {
 			if ((buffer[i] & (1<<j)) != 0) {
-			    printf("%lld\n", value);
+			    printf("%ld\n", value);
 			}
 			value += step;
 		    }

@@ -11,9 +11,9 @@
  */
 
 /*
- * @(#) $Revision: 1.1 $
- * @(#) $Id: popcnt.c,v 1.1 2001/12/28 06:40:34 chongo Exp chongo $
- * @(#) $Source: /home/chongo/bench/goldbach/RCS/popcnt.c,v $
+ * @(#) $Revision: 1.2 $
+ * @(#) $Id: popcnt.c,v 1.2 2001/12/28 18:29:10 chongo Exp root $
+ * @(#) $Source: /usr/local/src/bin/bitmap/RCS/popcnt.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
  *
@@ -187,7 +187,7 @@ main(int argc, char *argv[])
     /*
      * report count
      */
-    printf("%lld\n", bitcnt);
+    printf("%ld\n", bitcnt);
 
     /*
      * All done!

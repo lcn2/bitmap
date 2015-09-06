@@ -86,9 +86,9 @@
  */
 
 /*
- * @(#) $Revision: 1.6 $
- * @(#) $Id: bitset.c,v 1.6 2001/12/28 07:13:42 chongo Exp chongo $
- * @(#) $Source: /home/chongo/bench/goldbach/RCS/bitset.c,v $
+ * @(#) $Revision: 1.7 $
+ * @(#) $Id: bitset.c,v 1.7 2001/12/28 18:29:10 chongo Exp root $
+ * @(#) $Source: /usr/local/src/bin/bitmap/RCS/bitset.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
  *
@@ -189,7 +189,7 @@ main(int argc, char *argv[])
         exit(3);
     }
     if (step <= 0) {
-	fprintf(stderr, "%s: step: %lld must be > 0\n", program, step);
+	fprintf(stderr, "%s: step: %ld must be > 0\n", program, step);
 	exit(4);
     }
 
@@ -243,10 +243,10 @@ main(int argc, char *argv[])
 	if (*p != '\n' || *(p+1) != '\0') {
 	    /* improper line, ignore it */
 	    if (*p == '\0') {
-		fprintf(stderr, "%s: line %lld: ignoring, line too long\n",
+		fprintf(stderr, "%s: line %ld: ignoring, line too long\n",
 			program, line);
 	    } else {
-		fprintf(stderr, "%s: line %lld: ignoring, invalid chars\n",
+		fprintf(stderr, "%s: line %ld: ignoring, invalid chars\n",
 			program, line);
 	    }
 	    continue;
@@ -258,7 +258,7 @@ main(int argc, char *argv[])
 	errno = 0;
 	value = strtoll(inbuf, NULL, 0);
 	if (errno == ERANGE) {
-	    fprintf(stderr, "%s: line %lld: ignoring, value out of range\n",
+	    fprintf(stderr, "%s: line %ld: ignoring, value out of range\n",
 		    program, line);
 	    continue;
 	}
@@ -268,7 +268,7 @@ main(int argc, char *argv[])
 	 */
 	if (had_prev && value <= prev) {
 	    if (value < prev) {
-		fprintf(stderr, "%s: line %lld: ignoring, value not sorted\n",
+		fprintf(stderr, "%s: line %ld: ignoring, value not sorted\n",
 			program, line);
 	    }
 	    continue;
@@ -361,10 +361,10 @@ main(int argc, char *argv[])
 	boffset = (value - bottom) / step;
 	/* firewall */
 	if (boffset > (u_int64_t)BUFSIZ*OCTETBITS) {
-	    fprintf(stderr, "%s: FATAL: unexpected bit offset: %lld > %d\n",
+	    fprintf(stderr, "%s: FATAL: unexpected bit offset: %ld > %d\n",
 		    program, boffset, BUFSIZ*OCTETBITS);
-	    fprintf(stderr, "%s: FATAL: prev: %lld value: %lld "
-	    		    "bottom: %lld beyond: %lld\n",
+	    fprintf(stderr, "%s: FATAL: prev: %ld value: %ld "
+	    		    "bottom: %ld beyond: %ld\n",
 			    program, prev, value, bottom, beyond);
 	    exit(7);
 	}
