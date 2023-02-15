@@ -2,9 +2,9 @@
 #
 # bitmap - bitmap operations
 #
-# @(#) $Revision: 1.5 $
-# @(#) $Id: Makefile,v 1.5 2001/12/28 18:30:12 chongo Exp root $
-# @(#) $Source: /usr/local/src/cmd/bitmap/RCS/Makefile,v $
+# @(#) $Revision: 1.6 $
+# @(#) $Id: Makefile,v 1.6 2001/12/31 09:37:54 root Exp $
+# @(#) $Source: /usr/local/src/bin/bitmap/RCS/Makefile,v $
 #
 # Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
 #

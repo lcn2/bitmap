@@ -11,8 +11,8 @@
  */
 
 /*
- * @(#) $Revision: 1.2 $
- * @(#) $Id: popcnt.c,v 1.2 2001/12/28 18:29:10 chongo Exp root $
+ * @(#) $Revision: 1.3 $
+ * @(#) $Id: popcnt.c,v 1.3 2015/09/06 06:35:06 root Exp $
  * @(#) $Source: /usr/local/src/bin/bitmap/RCS/popcnt.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.

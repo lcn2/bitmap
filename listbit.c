@@ -13,8 +13,8 @@
  */
 
 /*
- * @(#) $Revision: 1.1 $
- * @(#) $Id: listbit.c,v 1.1 2001/12/28 18:28:44 chongo Exp root $
+ * @(#) $Revision: 1.2 $
+ * @(#) $Id: listbit.c,v 1.2 2015/09/06 06:35:06 root Exp $
  * @(#) $Source: /usr/local/src/bin/bitmap/RCS/listbit.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.

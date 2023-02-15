@@ -86,8 +86,8 @@
  */
 
 /*
- * @(#) $Revision: 1.7 $
- * @(#) $Id: bitset.c,v 1.7 2001/12/28 18:29:10 chongo Exp root $
+ * @(#) $Revision: 1.8 $
+ * @(#) $Id: bitset.c,v 1.8 2015/09/06 06:35:06 root Exp $
  * @(#) $Source: /usr/local/src/bin/bitmap/RCS/bitset.c,v $
  *
  * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
