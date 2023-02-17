@@ -1,12 +1,8 @@
-#!/bin/make
+#!/usr/bin/env make
 #
 # bitmap - bitmap operations
 #
-# @(#) $Revision: 1.6 $
-# @(#) $Id: Makefile,v 1.6 2001/12/31 09:37:54 root Exp $
-# @(#) $Source: /usr/local/src/bin/bitmap/RCS/Makefile,v $
-#
-# Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
+# Copyright (c) 2001,2023 by Landon Curt Noll.  All Rights Reserved.
 #
 # Permission to use, copy, modify, and distribute this software and
 # its documentation for any purpose and without fee is hereby granted,
@@ -30,11 +26,12 @@
 #
 # Share and enjoy!
 
-SHELL= /bin/sh
+SHELL= bash
 CC= cc
 #CFLAGS= -g3 -O2 -Wall
 #CFLAGS= -g3 -Wall
-CFLAGS= -O3 -Wall
+CFLAGS= -O3 -g3 -Wall
+RM= rm
 
 DESTDIR = /usr/local/bin
 INSTALL= install
@@ -62,7 +59,7 @@ install: all
 	done
 
 clean:
-	rm -f *.o
+	${RM} -f *.o
 
 clobber: clean
-	rm -f ${TARGETS}
+	${RM} -f ${TARGETS}
