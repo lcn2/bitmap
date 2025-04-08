@@ -1,12 +1,6 @@
 /*
  * bitset - set bits in a bitmap given sorted integers on input
  *
- * usage:
- *	bitmap start step
- *
- *	start	starting value of the first bit in the bitmap
- *	step	difference in value between successive bits in the bitmap
- *
  * The purpose of this program is to set bits in a bitmap.  The input to
  * this program are integers indicating which bits in the bitmap to set.
  * The output of this program is the resulting bitmap.  The final octet
@@ -83,14 +77,8 @@
  * be sent to stderr.  However duplicate values, values < start and
  * values that cannot be represented in the bitmap (due to step) will
  * be silently ignored.
- */
-
-/*
- * @(#) $Revision: 1.8 $
- * @(#) $Id: bitset.c,v 1.8 2015/09/06 06:35:06 root Exp $
- * @(#) $Source: /usr/local/src/bin/bitmap/RCS/bitset.c,v $
  *
- * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
+ * Copyright (c) 2001,2015,2023,2025 by Landon Curt Noll.  All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
  * its documentation for any purpose and without fee is hereby granted,
@@ -110,9 +98,12 @@
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  *
- * chongo <was here> /\oo/\
+ * chongo (Landon Curt Noll) /\oo/\
  *
- * Share and enjoy!
+ * http://www.isthe.com/chongo/index.html
+ * https://github.com/lcn2
+ *
+ * Share and Enjoy!     :-)
  */
 
 #include <stdio.h>
@@ -121,6 +112,16 @@
 #include <sys/types.h>
 #include <memory.h>
 #include <stdlib.h>
+#include <string.h>
+#include <sys/errno.h>
+#include <unistd.h>
+#include <strings.h>
+
+
+/*
+ * official version
+ */
+#define VERSION "1.8.1 2025-04-08"          /* format: major.minor YYYY-MM-DD */
 
 
 /*
@@ -128,6 +129,36 @@
  */
 #define MAXLINE (19+1)	/* 2^63-1 is 19 digits long + newline */
 #define OCTETBITS (8)	/* 8 bits per octet */
+
+
+/*
+ * usage message
+ */
+static const char * const usage =
+  "usage: %s [-h] [-V] start step\n"
+        "\n"
+        "    -h            print help message and exit\n"
+        "    -V            print version string and exit\n"
+        "\n"
+	"    start	   starting bitmap value\n"
+	"    step	   step values between bits\n"
+        "\n"
+        "Exit codes:\n"
+        "    0         all OK\n"
+        "    2         -h and help string printed or -V and version string printed\n"
+        "    3         command line error\n"
+        " >= 10        internal error\n"
+        "\n"
+        "%s version: %s\n";
+
+
+/*
+ * static declarations
+ */
+static char *program = NULL;    /* our name */
+static char *prog = NULL;       /* basename of program */
+static const char * const version = VERSION;
+
 
 /*
  * a BUFSIZ chunk of the output bitmap, with an extra guard octet for safety
@@ -142,50 +173,91 @@ static u_int8_t buffer[BUFSIZ+1];
  */
 static u_int8_t zero[BUFSIZ+1];
 
-/*
- * our name
- */
-char *program;
 
 int
 main(int argc, char *argv[])
 {
-    int64_t start;		/* starting bitmap value */
-    int64_t step;		/* bitmap increment value */
-    int64_t value;		/* input value from stdin */
-    int64_t line;		/* input line number */
-    int64_t bottom;		/* low bit value of bitmap */
-    int64_t span;		/* range of values spanned by a bitmap */
-    int64_t beyond;		/* value of bit just beyond end of bitmap */
+    unsigned long start;	/* starting bitmap value */
+    unsigned long step;		/* bitmap increment value */
+    unsigned long value;	/* input value from stdin */
+    unsigned long line;		/* input line number */
+    unsigned long bottom;	/* low bit value of bitmap */
+    unsigned long span;		/* range of values spanned by a bitmap */
+    unsigned long beyond;	/* value of bit just beyond end of bitmap */
     int had_prev;		/* 1 ==> seen a previous non-ignored value */
-    int64_t prev;		/* previous non-ignored value */
-    int64_t boffset;		/* total bit offset in buffer for value */
+    unsigned long prev;		/* previous non-ignored value */
+    unsigned long boffset;	/* total bit offset in buffer for value */
     int octet;			/* octet offset in buffer for value */
     int bit;			/* bit offset in byte for value */
     char inbuf[MAXLINE+1];	/* max input line + newline + NUL byte */
+    int i;
 
     /*
      * parse args
      */
     program = argv[0];
-    if (argc != 3) {
-	fprintf(stderr, "usage: %s start step\n"
-	    "\n"
-	    "\tstart\tstarting bitmap value\n"
-	    "\tstep\tstep values between bits\n", program);
-	exit(1);
+    prog = rindex(program, '/');
+    if (prog == NULL) {
+        prog = program;
+    } else {
+        ++prog;
     }
+    while ((i = getopt(argc, argv, ":hV")) != -1) {
+	switch (i) {
+
+        case 'h':                   /* -h - print help message and exit */
+	    fprintf(stderr, usage, program, prog, version);
+            exit(2); /* ooo */
+            /*NOTREACHED*/
+
+	case 'V':                   /* -V - print version string and exit */
+            (void) printf("%s\n", version);
+            exit(2); /* ooo */
+            /*NOTREACHED*/
+
+	case ':':
+            (void) fprintf(stderr, "%s: ERROR: requires an argument -- %c\n", program, optopt);
+	    fprintf(stderr, usage, program, prog, version);
+            exit(3); /* ooo */
+            /*NOTREACHED*/
+
+        case '?':
+            (void) fprintf(stderr, "%s: ERROR: illegal option -- %c\n", program, optopt);
+	    fprintf(stderr, usage, program, prog, version);
+            exit(3); /* ooo */
+            /*NOTREACHED*/
+
+        default:
+            fprintf(stderr, "%s: ERROR: invalid -flag\n", program);
+	    fprintf(stderr, usage, program, prog, version);
+            exit(3); /* ooo */
+            /*NOTREACHED*/
+        }
+    }
+    /* skip over command line options */
+    argv += optind;
+    argc -= optind;
+    /* check the arg count */
+    if (argc != 3) {
+        fprintf(stderr, "%s: ERROR: expected 2 args, found: %d\n", program, argc);
+	fprintf(stderr, usage, program, prog, version);
+        exit(3); /* ooo */
+        /*NOTREACHED*/
+    }
+
+    /* parse start */
     errno = 0;
     start = strtoll(argv[1], NULL, 0);
     if (errno == ERANGE) {
-	fprintf(stderr, "%s: start value must be [-(2^63),(2^63-1)]\n",
-		program);
+	fprintf(stderr, "%s: failed to parse start value: %s\n", program, argv[1]);
         exit(2);
     }
+
+    /* parse step */
     errno = 0;
     step = strtoll(argv[2], NULL, 0);
     if (errno == ERANGE) {
-	fprintf(stderr, "%s: start value must be [1,(2^63-1)]\n", program);
+	fprintf(stderr, "%s: failed to parse step value: %s\n", program, argv[2]);
         exit(3);
     }
     if (step <= 0) {
@@ -252,7 +324,7 @@ main(int argc, char *argv[])
 	    continue;
 	}
 
-    	/*
+	/*
 	 * convert input into an input value
 	 */
 	errno = 0;
@@ -297,13 +369,13 @@ main(int argc, char *argv[])
 	 * bitmap.
 	 */
 
-    	/*
+	/*
 	 * case: value is beyond current bitmap
 	 *
 	 * NOTE: We must check for beyond > bottom because the current
 	 *	 bitmap buffer could go beyond 2^63-1.
 	 */
-    	if (beyond > bottom && value >= beyond) {
+	if (beyond > bottom && value >= beyond) {
 
 	    /*
 	     * write the current bitmap buffer
@@ -364,7 +436,7 @@ main(int argc, char *argv[])
 	    fprintf(stderr, "%s: FATAL: unexpected bit offset: %ld > %d\n",
 		    program, boffset, BUFSIZ*OCTETBITS);
 	    fprintf(stderr, "%s: FATAL: prev: %ld value: %ld "
-	    		    "bottom: %ld beyond: %ld\n",
+			    "bottom: %ld beyond: %ld\n",
 			    program, prev, value, bottom, beyond);
 	    exit(7);
 	}
@@ -379,7 +451,7 @@ main(int argc, char *argv[])
 	/*
 	 * note that we have a (perhaps new) non-ignored previous value
 	 */
-    	had_prev = 1;
+	had_prev = 1;
 	prev = value;
 	/* clear any error flags */
 	clearerr(stdin);
@@ -422,7 +494,7 @@ main(int argc, char *argv[])
     /*
      * All done!
      *
-     * 	-- Jessica Noll, 1985
+     *	-- Jessica Noll, 1985
      */
     exit(0);
 }

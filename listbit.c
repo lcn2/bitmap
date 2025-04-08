@@ -1,23 +1,10 @@
 /*
  * listbit - list the positions of 0 or 1 bits
  *
- * usage:
- *	listbit start step type
- *
- *	start	starting value of the first bit in the bitmap
- *	step	difference in value between successive bits in the bitmap
- *	type	0 ==> list 0 bits, 1 ==> list 1 bits
- *
  * We will read a bitmap from stdin and list the positions of either 0
  * or 1 bits.
- */
-
-/*
- * @(#) $Revision: 1.2 $
- * @(#) $Id: listbit.c,v 1.2 2015/09/06 06:35:06 root Exp $
- * @(#) $Source: /usr/local/src/bin/bitmap/RCS/listbit.c,v $
  *
- * Copyright (c) 2001 by Landon Curt Noll.  All Rights Reserved.
+ * Copyright (c) 2001,2015,2023,2025 by Landon Curt Noll.  All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
  * its documentation for any purpose and without fee is hereby granted,
@@ -37,26 +24,27 @@
  * OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
  * PERFORMANCE OF THIS SOFTWARE.
  *
- * chongo <was here> /\oo/\
+ * chongo (Landon Curt Noll) /\oo/\
  *
- * Share and enjoy!
+ * http://www.isthe.com/chongo/index.html
+ * https://github.com/lcn2
+ *
+ * Share and Enjoy!     :-)
  */
+
 
 #include <stdio.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <errno.h>
+#include <unistd.h>
 #include <string.h>
+#include <sys/errno.h>
+
 
 /*
- * our name
+ * official version
  */
-char *program;
-
-/*
- * read buffer
- */
-static u_int8_t buffer[BUFSIZ];
+#define VERSION "1.8.1 2025-04-08"          /* format: major.minor YYYY-MM-DD */
 
 /*
  * what we will count
@@ -66,14 +54,49 @@ static u_int8_t buffer[BUFSIZ];
 #define OCTETBITS (8)	/* 8 bits per octet */
 
 
+/*
+ * usage message
+ */
+static const char * const usage =
+  "usage: %s [-h] [-V] start step type\n"
+        "\n"
+        "    -h            print help message and exit\n"
+        "    -V            print version string and exit\n"
+        "\n"
+        "    start         starting bitmap value\n"
+        "    step          step values between bits\n"
+        "    type          0 ==> list 0 bits, 1 ==> list 1 bits\n"
+        "\n"
+        "Exit codes:\n"
+        "    0         all OK\n"
+        "    2         -h and help string printed or -V and version string printed\n"
+        "    3         command line error\n"
+        " >= 10        internal error\n"
+        "\n"
+        "%s version: %s\n";
+
+
+/*
+ * static declarations
+ */
+static char *program = NULL;    /* our name */
+static char *prog = NULL;       /* basename of program */
+static const char * const version = VERSION;
+
+/*
+ * read buffer
+ */
+static u_int8_t buffer[BUFSIZ];
+
+
 int
 main(int argc, char *argv[])
 {
     int cnttype;		/* what we will count */
     int readcnt;		/* chars read, or EOF */
-    int64_t start;		/* starting bitmap value */
-    int64_t step;		/* bitmap increment value */
-    int64_t value;		/* input value from stdin */
+    unsigned long start;	/* starting bitmap value */
+    unsigned long step;		/* bitmap increment value */
+    unsigned long value;	/* input value from stdin */
     int i;
     int j;
 
@@ -81,41 +104,93 @@ main(int argc, char *argv[])
      * parse args
      */
     program = argv[0];
-    if (argc != 4) {
-	fprintf(stderr, "usage: %s start step type\n"
-	    "\n"
-	    "\tstart\tstarting bitmap value\n"
-	    "\tstep\tstep values between bits\n"
-	    "\ttype\t0 ==> list 0 bits\n"
-	    "\t\t1 ==> list 1 bits\n", program);
-	exit(1);
+    prog = rindex(program, '/');
+    if (prog == NULL) {
+        prog = program;
+    } else {
+        ++prog;
     }
-    errno = 0;
-    start = strtoll(argv[1], NULL, 0);
-    if (errno == ERANGE) {
-	fprintf(stderr, "%s: start value must be [-(2^63),(2^63-1)]\n",
-		program);
-        exit(2);
+    while ((i = getopt(argc, argv, ":hV")) != -1) {
+	switch (i) {
+
+        case 'h':                   /* -h - print help message and exit */
+	    fprintf(stderr, usage, program, prog, version);
+            exit(2); /* ooo */
+            /*NOTREACHED*/
+
+	case 'V':                   /* -V - print version string and exit */
+            (void) printf("%s\n", version);
+            exit(2); /* ooo */
+            /*NOTREACHED*/
+
+	case ':':
+            (void) fprintf(stderr, "%s: ERROR: requires an argument -- %c\n", program, optopt);
+	    fprintf(stderr, usage, program, prog, version);
+            exit(3); /* ooo */
+            /*NOTREACHED*/
+
+        case '?':
+            (void) fprintf(stderr, "%s: ERROR: illegal option -- %c\n", program, optopt);
+	    fprintf(stderr, usage, program, prog, version);
+            exit(3); /* ooo */
+            /*NOTREACHED*/
+
+        default:
+            fprintf(stderr, "%s: ERROR: invalid -flag\n", program);
+	    fprintf(stderr, usage, program, prog, version);
+            exit(3); /* ooo */
+            /*NOTREACHED*/
+        }
     }
+    /* skip over command line options */
+    argv += optind;
+    argc -= optind;
+    /* check the arg count */
+    if (argc != 3) {
+        fprintf(stderr, "%s: ERROR: expected 3 args, found: %d\n", program, argc);
+	fprintf(stderr, usage, program, prog, version);
+        exit(3); /* ooo */
+        /*NOTREACHED*/
+    }
+
+    /* parse start */
     errno = 0;
-    step = strtoll(argv[2], NULL, 0);
+    start = strtoll(argv[0], NULL, 0);
     if (errno == ERANGE) {
-	fprintf(stderr, "%s: start value must be [1,(2^63-1)]\n", program);
-        exit(3);
+	fprintf(stderr, "%s: failed to parse start value: %s\n", program, argv[0]);
+	fprintf(stderr, usage, program, prog, version);
+        exit(3); /* ooo */
+        /*NOTREACHED*/
+    }
+
+    /* parse step */
+    errno = 0;
+    step = strtoll(argv[1], NULL, 0);
+    if (errno == ERANGE) {
+	fprintf(stderr, "%s: failed to parse step value: %s\n", program, argv[1]);
+	fprintf(stderr, usage, program, prog, version);
+        exit(3); /* ooo */
+        /*NOTREACHED*/
     }
     if (step <= 0) {
-	fprintf(stderr, "%s: step: %ld must be > 0\n", program, step);
-	exit(4);
+	fprintf(stderr, "%s: step value must be > 0: %s\n", program, argv[1]);
+	fprintf(stderr, usage, program, prog, version);
+        exit(3); /* ooo */
+        /*NOTREACHED*/
     }
-    if (strcmp(argv[1], "0") == 0) {
+
+    /* parse type */
+    if (strcmp(argv[2], "0") == 0) {
 	cnttype = COUNT_ZERO;
-    } else if (strcmp(argv[1], "1") == 0) {
+    } else if (strcmp(argv[2], "1") == 0) {
 	cnttype = COUNT_ONE;
     } else {
-	fprintf(stderr, "%s: count type must be one of:\n"
+	fprintf(stderr, "%s: count type: %s must be one of:\n"
 	    "\t0 ==> count 0 bits\n"
-	    "\t1 ==> count 1 bits\n", program);
-        exit(5);
+	    "\t1 ==> count 1 bits\n", argv[2], program);
+	fprintf(stderr, usage, program, prog, version);
+        exit(3); /* ooo */
+        /*NOTREACHED*/
     }
 
     /*
@@ -159,7 +234,7 @@ main(int argc, char *argv[])
 	    }
 	    break;
 
-    	case COUNT_ONE:
+	case COUNT_ONE:
 	    for (i=0; i < readcnt; ++i) {
 		if (buffer[i]) {
 		    for (j=0; j < OCTETBITS; ++j) {
@@ -184,7 +259,7 @@ main(int argc, char *argv[])
     /*
      * All done!
      *
-     * 	-- Jessica Noll, 1985
+     *	-- Jessica Noll, 1985
      */
     exit(0);
 }

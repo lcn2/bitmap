@@ -1,3 +1,6 @@
 bitset
+bitset.o
 listbit
+listbit.o
 popcnt
+popcnt.o
