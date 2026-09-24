@@ -4,7 +4,7 @@
  * We will read a bitmap from stdin and list the positions of either 0
  * or 1 bits.
  *
- * Copyright (c) 2001,2015,2023,2025 by Landon Curt Noll.  All Rights Reserved.
+ * Copyright (c) 2001,2015,2023,2025,2026 by Landon Curt Noll.  All Rights Reserved.
  *
  * Permission to use, copy, modify, and distribute this software and
  * its documentation for any purpose and without fee is hereby granted,
@@ -116,30 +116,30 @@ main(int argc, char *argv[])
         case 'h':                   /* -h - print help message and exit */
 	    fprintf(stderr, usage, program, prog, version);
             exit(2); /* ooo */
-            /*NOTREACHED*/
+            break;
 
 	case 'V':                   /* -V - print version string and exit */
             (void) printf("%s\n", version);
             exit(2); /* ooo */
-            /*NOTREACHED*/
+            break;
 
 	case ':':
             (void) fprintf(stderr, "%s: ERROR: requires an argument -- %c\n", program, optopt);
 	    fprintf(stderr, usage, program, prog, version);
             exit(3); /* ooo */
-            /*NOTREACHED*/
+            break;
 
         case '?':
             (void) fprintf(stderr, "%s: ERROR: illegal option -- %c\n", program, optopt);
 	    fprintf(stderr, usage, program, prog, version);
             exit(3); /* ooo */
-            /*NOTREACHED*/
+            break;
 
         default:
             fprintf(stderr, "%s: ERROR: invalid -flag\n", program);
 	    fprintf(stderr, usage, program, prog, version);
             exit(3); /* ooo */
-            /*NOTREACHED*/
+            break;
         }
     }
     /* skip over command line options */
@@ -150,7 +150,6 @@ main(int argc, char *argv[])
         fprintf(stderr, "%s: ERROR: expected 3 args, found: %d\n", program, argc);
 	fprintf(stderr, usage, program, prog, version);
         exit(3); /* ooo */
-        /*NOTREACHED*/
     }
 
     /* parse start */
@@ -160,7 +159,6 @@ main(int argc, char *argv[])
 	fprintf(stderr, "%s: failed to parse start value: %s\n", program, argv[0]);
 	fprintf(stderr, usage, program, prog, version);
         exit(3); /* ooo */
-        /*NOTREACHED*/
     }
 
     /* parse step */
@@ -170,13 +168,11 @@ main(int argc, char *argv[])
 	fprintf(stderr, "%s: failed to parse step value: %s\n", program, argv[1]);
 	fprintf(stderr, usage, program, prog, version);
         exit(3); /* ooo */
-        /*NOTREACHED*/
     }
     if (step <= 0) {
 	fprintf(stderr, "%s: step value must be > 0: %s\n", program, argv[1]);
 	fprintf(stderr, usage, program, prog, version);
         exit(3); /* ooo */
-        /*NOTREACHED*/
     }
 
     /* parse type */
@@ -190,7 +186,6 @@ main(int argc, char *argv[])
 	    "\t1 ==> count 1 bits\n", argv[2], program);
 	fprintf(stderr, usage, program, prog, version);
         exit(3); /* ooo */
-        /*NOTREACHED*/
     }
 
     /*
